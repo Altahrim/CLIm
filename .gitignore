@@ -1,0 +1,9 @@
+## Eclipse files
+.idea
+.project
+.buildpath
+.settings/
+
+## Composer
+composer.lock
+Vendor/

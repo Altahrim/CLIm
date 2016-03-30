@@ -1,0 +1,17 @@
+{
+    "name": "Altahrim/CLIm",
+    "description": "PHP CLI Improved. Toolkit aiming to provide a beautiful CLI output",
+    "version": "0.1.0",
+    "require": {
+        "php": ">=5.6.0",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "Classes"
+        }
+    },
+    "config" : {
+        "vendor-dir": "Vendor"
+    }
+}
