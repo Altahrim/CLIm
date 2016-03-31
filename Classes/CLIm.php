@@ -47,15 +47,15 @@ class CLIm
         // FIXME
     }
 
-    public function info()
+    public function __toString()
     {
+        ob_start();
         $this
             ->style(Style::BOLD)
             ->write('Colors: ', self::VERB_QUIET)
             ->style(Style::BOLD, true)
             ->writeLn($this->colors->getPalette(), self::VERB_QUIET);
-
-        return $this;
+        return ob_get_clean();
     }
 
     public function registerErrorHandlers()
@@ -162,12 +162,12 @@ class CLIm
     }
 
 
-    public function setPrompt($prompt, $color = null, $bgcolor = null, $flags = null)
+    public function setPrompt($prompt, $color = null, $bgColor = null, $flags = null)
     {
         $this->prompt = [
-            'text'    => $prompt,
+            'text'    => (string) $prompt,
             'color'   => $color,
-            'bgColor' => $bgcolor,
+            'bgColor' => $bgColor,
             'flags'   => $flags
         ];
     }
@@ -207,20 +207,10 @@ class CLIm
 
     private function formatEscape($color = null, $bgColor = null, $flags = null, $invertFlags = false)
     {
-        // TODO Detect if console support style
         $cmd = [];
-        if (null !== $flags) {
-            for ($i = 0; $i <= 7; ++$i) {
-                $bit = pow(2, $i);
-                if (0 !== ($bit & $flags)) {
-                    if ($invertFlags) {
-                        $bit += 20;
-                    }
-                    $cmd[] = $bit;
-                }
-            }
+        if (null !== $flags && $flags = $this->style->format($flags, (bool) $invertFlags)) {
+            $cmd[] = $flags;
         }
-
         if (null !== $color && $color = $this->colors->format($color)) {
             $cmd[] = $color;
         }
@@ -251,7 +241,12 @@ class CLIm
 
     public function getWidth()
     {
-        return exec('tput cols');
+        return exec(self::TPUT_BINARY . ' cols');
+    }
+
+    public function verbosity()
+    {
+        // TODO
     }
 
     /*

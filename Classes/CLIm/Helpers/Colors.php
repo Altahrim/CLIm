@@ -24,7 +24,7 @@ class Colors
     const BLUE    = 4;
     const MAGENTA = 5;
     const CYAN    = 6;
-    const GRAY    = 7;
+    const GREY    = 7;
 
     /**
      * Constructor
@@ -74,7 +74,6 @@ class Colors
             $blue  = hexdec($blue);
             $zone  = 10;
 
-            // Cas particulier du gris
             if ($this->isSimilarTo($red, $green, $zone) && $this->isSimilarTo($red, $blue, $zone) && $this->isSimilarTo($blue, $green, $zone)) {
                 $avg = ($red + $green + $blue) / 3;
                 $color = round($avg / (256 / 24));
@@ -120,26 +119,25 @@ class Colors
             throw new \Exception('Invalid color ' . $color);
         }
 
-        /** 0x00-0x07:  standard colors (as in ESC [ 30–37 m) **/
+        /* 0x00-0x07:  standard colors (as in ESC [ 30–37 m) */
         if ($color <= 0x07) {
             return $color;
         }
 
-        /** 0x08-0x0F:  high intensity colors (as in ESC [ 90–97 m) **/
+        /* 0x08-0x0F:  high intensity colors (as in ESC [ 90–97 m) */
         if ($color <= 0x0F) {
             return $color - 8;
         }
 
-        /** 0x10-0xE7:  6 × 6 × 6 = 216 colors: 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5) **/
+        /* 0x10-0xE7:  6 × 6 × 6 = 216 colors: 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5) */
         if ($color <= 0xE7) {
             $color    -= 16;
             $blue      = $color % 6;
             $green     = floor($color / 6) % 6;
             $red       = (int) floor($color / 36);
 
-            // Special case: gray
             if ($blue === $green && $blue === $red) {
-                return $blue > 2 ? self::GRAY : self::BLACK;
+                return $blue > 2 ? self::GREY : self::BLACK;
             }
 
             $min    = min($red, $green, $blue);
@@ -167,11 +165,11 @@ class Colors
                 return self::YELLOW;
             }
 
-            return max($red, $green, $blue) > 2 ? self::GRAY : self::BLACK;
+            return max($red, $green, $blue) > 2 ? self::GREY : self::BLACK;
         }
 
-        /* 0xE8-0xFF:  grayscale from black to white in 24 steps */
-        return $color <= 0xF3 ? self::BLACK : self::GRAY;
+        /* 0xE8-0xFF:  greyscale from black to white in 24 steps */
+        return $color <= 0xF3 ? self::BLACK : self::GREY;
     }
 }
 
