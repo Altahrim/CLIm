@@ -7,15 +7,14 @@ namespace CLIm\Widgets;
  */
 class Table extends \CLIm\Widget
 {
-    private $innerMargin = 2;
-    private $rowId;
     const ALIGN_LEFT = 1;
     const ALIGN_RIGHT = 2;
     const ALIGN_CENTER = 3;
     const DISP_FRAME = 1;
     const DISP_ROWS = 2;
     const DISP_COLS = 4;
-
+    private $innerMargin = 2;
+    private $rowId;
     /**
      * Data
      *
@@ -44,17 +43,21 @@ class Table extends \CLIm\Widget
     /**
      * Add some data to current table
      * @param array $data
+     * @return $this
      */
     public function addData(array $data = [])
     {
         foreach ($data as $row) {
-            $rowId = ++ $this->rowId;
+            $rowId = ++$this->rowId;
             $this->data[$rowId] = [];
             foreach ($row as $colId => $str) {
                 $this->makeColumn($colId);
                 $col = &$this->columns[$colId];
                 if (is_array($str)) {
-                    $str = implode(',', $str);
+                    // TODO find a better way to display tables
+                    $str = @implode(',', $str);
+                } elseif (is_object($str)) {
+                    $str = get_class($str);
                 }
                 $len = mb_strlen($str);
                 $col['minWidth'] = max($col['minWidth'], $len);
@@ -71,7 +74,7 @@ class Table extends \CLIm\Widget
 
     private function makeColumn($colId)
     {
-        if (! isset($this->columns[$colId])) {
+        if (!isset($this->columns[$colId])) {
             $this->columns[$colId] = [
                 'minWidth' => 0,
                 'align' => self::ALIGN_LEFT
@@ -79,7 +82,7 @@ class Table extends \CLIm\Widget
         }
     }
 
-    public function draw($flags = self::DISP_FRAME|self::DISP_COLS|self::DISP_ROWS)
+    public function draw($flags = self::DISP_FRAME | self::DISP_COLS | self::DISP_ROWS)
     {
         $showFrame = $flags & self::DISP_FRAME;
         $showCols = $flags & self::DISP_COLS;
@@ -88,7 +91,7 @@ class Table extends \CLIm\Widget
         $nbCols = count($this->columns);
         foreach ($this->data as $row) {
             // Display vertical lines
-            if ($showFrame && $firstRow || $showRows && ! $firstRow) {
+            if ($showFrame && $firstRow || $showRows && !$firstRow) {
                 if ($firstRow) {
                     $lineBegin = '┏';
                     $lineEnd = '┓';
@@ -131,7 +134,7 @@ class Table extends \CLIm\Widget
                 $margin = str_repeat(' ', $this->innerMargin);
                 if ($firstCol && $showFrame) {
                     echo '┃', $margin;
-                } elseif (! $firstCol && $showCols) {
+                } elseif (!$firstCol && $showCols) {
                     echo '│', $margin;
                 }
                 $data = isset($row[$colName]) ? $row[$colName] : false;
@@ -174,10 +177,10 @@ class Table extends \CLIm\Widget
             $firstCol = true;
             foreach ($this->columns as $colId => $col) {
                 $margin = $showCols ? 2 * $this->innerMargin : $this->innerMargin;
-                echo ($firstCol ? '┗' : ($showCols ? '┷' : '')), str_repeat('━', $col['minWidth'] + $margin);
+                echo($firstCol ? '┗' : ($showCols ? '┷' : '')), str_repeat('━', $col['minWidth'] + $margin);
                 $firstCol = false;
             }
-            echo ($showCols ? '' : str_repeat('━', $this->innerMargin)), '┛', "\n";
+            echo($showCols ? '' : str_repeat('━', $this->innerMargin)), '┛', "\n";
         }
 
         return $this;
