@@ -18,7 +18,7 @@ $out
     ->write('activated')
     ->style(Style::UNDERLINE, true)
     ->write(' and deactivated')
-    ->skipLn(2);
+    ->lf(2);
 
 $out
     ->style(Style::UNDERLINE)
@@ -28,7 +28,7 @@ $out
     ->style(Style::BOLD, true)
     ->write(' and removed')
     ->reset()
-    ->skipLn(2);
+    ->lf(2);
 
 // Color can be:
 // - a constant from Colors

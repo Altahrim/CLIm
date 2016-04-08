@@ -17,11 +17,11 @@ $t->addData($data);
 
 $out->writeLn('Table with borders:');
 $t->draw();
-$out->skipLn();
+$out->lf();
 
 $out->writeLn('Same table without borders:');
 $t->draw(Table::DISP_ROWS|Table::DISP_COLS);
-$out->skipLn();
+$out->lf();
 
 $out->writeLn('Named columns can be very helpful:');
 $data = [
@@ -33,4 +33,4 @@ $data = [
 $t = new Table();
 $t->addData($data);
 $t->draw();
-$out->skipLn();
+$out->lf();

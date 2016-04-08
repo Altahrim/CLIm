@@ -12,29 +12,29 @@ $out
     ->style(Style::UNDERLINE)
     ->writeLn('## Foreground colors:')
     ->style(Style::UNDERLINE, true)
-    ->skipLn();
+    ->lf();
 for ($i = 0; $i < 256;) {
     $out
         ->color($i)
         ->write(sprintf('%4s ', $i));
     if (0 === (++$i % 8)) {
-        $out->reset()->skipLn();
+        $out->reset()->lf();
     }
 }
-$out->skipLn(2);
+$out->lf(2);
 
 // Then background
 $out
     ->style(Style::UNDERLINE)
     ->writeLn('## Background colors:')
     ->style(Style::UNDERLINE, true)
-    ->skipLn();
+    ->lf();
 for ($i = 0; $i < 256;) {
     $out
         ->bgColor($i)
         ->write(sprintf('%4s ', $i));
     if (0 === (++$i % 8)) {
-        $out->reset()->skipLn();
+        $out->reset()->lf();
     }
 }
-$out->skipLn();
+$out->lf();

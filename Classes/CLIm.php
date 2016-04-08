@@ -8,21 +8,61 @@ use \CLIm\Widgets\Table;
  */
 class CLIm
 {
+    /**
+     * Shortcut to an instance of Colors
+     * @var \CLIm\Helpers\Colors
+     */
     private $colors;
+
+    /**
+     * Shortcut to an instance of Style
+     * @var \CLIm\Helpers\Style
+     */
     private $style;
 
+    /**
+     * Script verbosity
+     * Only texts with a verbosity superior or equal to this one will be printed
+     * @var int
+     */
+    private $scriptVerbosity = self::VERB_NORMAL;
+
+    /**
+     * Current verbosity
+     * Next texts will be printed only if this value is superior or equal to script verbosity
+     * @var int
+     */
     private $verbosity = self::VERB_NORMAL;
 
-    const VERB_QUIET = 4;
-    const VERB_NORMAL = 3;
-    const VERB_VERBOSE = 2;
-    const VERB_DEBUG = 1;
+    /**
+     * Verbosity levels
+     * You can use more or different levels. The quieter level must have to lowest ID.
+     */
+    const VERB_QUIET = 1;
+    const VERB_NORMAL = 2;
+    const VERB_VERBOSE = 3;
+    const VERB_DEBUG = 4;
 
-    private $prompt = null;
+    /**
+     * Prompt description
+     * @var array
+     */
+    private $prompt;
 
+    /**
+     * Singleton
+     * @var \CLIm
+     */
     private static $instance;
 
+    /**
+     * Escape character
+     */
     const ESC = "\033";
+
+    /**
+     * Link to tput binary
+     */
     const TPUT_BINARY = 'tput';
 
     /**
@@ -105,9 +145,9 @@ class CLIm
      * Catch an exception and display it
      * @param Exception $e
      */
-    public function handleException(\Exception $e)
+    public function handleException($e)
     {
-        $this->displayError('Exception', $e->getMessage(), $e->getCode(), $e->getFile(), $e->getLine(), $e->getTrace());
+        $this->displayError(get_class($e), $e->getMessage(), $e->getCode(), $e->getFile(), $e->getLine(), $e->getTrace());
         if ($e->getPrevious()) {
             $this->writeLn('Previous exception was:');
             $this->handleException($e->getPrevious());
@@ -127,16 +167,16 @@ class CLIm
      */
     protected function displayError($type, $message, $code, $file, $line, array $backtrace, array $context = [])
     {
-        $this->skipLn(2);
+        $this->lf(2);
         $this->color('#DD0000')->style(Style::BOLD)->write('### ' . $type);
         if ($code > 0) {
             $this->write(' ' . $code);
         }
         $this->write(' ###')
             ->reset()
-            ->skipLn()
+            ->lf()
             ->writeLn($message)
-            ->skipLn();
+            ->lf();
 
         $this
             ->style(Style::BOLD)
@@ -147,29 +187,31 @@ class CLIm
             ->write(':')
             ->style(Style::DIM, true)
             ->writeLn($line)
-            ->skipLn();
+            ->lf();
 
-        // TODO Check verbosity before displaying
-        if (!empty($backtrace)) {
-            $this
-                ->style(Style::BOLD)
-                ->writeLn('Backtrace:')
-                ->style(Style::BOLD, true);
-            $bt = new Table();
-            $bt
-                ->addData($backtrace)
-                ->draw();
-            $this->skipLn();
-        }
-
-        if (!empty($context)) {
-            foreach ($context as $var) {
-                $this->dump($var);
+        // If script is in debug mode, display more context
+        if ($this->scriptVerbosity >= self::VERB_DEBUG) {
+            if (!empty($backtrace)) {
+                $this
+                    ->style(Style::BOLD)
+                    ->writeLn('Backtrace:')
+                    ->style(Style::BOLD, true);
+                $bt = new Table();
+                $bt
+                    ->addData($backtrace)
+                    ->draw();
+                $this->lf();
             }
-            $this->skipLn();
+
+            if (!empty($context)) {
+                foreach ($context as $var) {
+                    $this->dump($var);
+                }
+                $this->lf();
+            }
         }
 
-        $this->skipLn(2);
+        $this->lf(2);
     }
 
     /**
@@ -211,18 +253,41 @@ class CLIm
         }
     }
 
-    public function write($text, $verbosity = self::VERB_NORMAL)
+    /**
+     * Write some text.
+     * Wrapper around vprintf.
+     * @param $text
+     * @param string[] ...$args
+     * @return $this
+     */
+    public function write($text, ... $args)
     {
-        echo $text;
+        if ($this->verbosity >= $this->scriptVerbosity) {
+            vprintf($text, $args);
+        }
         return $this;
     }
 
-    public function writeLn($text, $verbosity = self::VERB_NORMAL)
+
+    /**
+     * Write some text and end with a line feed
+     * @param $text
+     * @param string[] ...$args
+     * @return $this
+     */
+    public function writeLn($text, ... $args)
     {
-        return $this->write($text, $verbosity)->skipLn();
+        if ($this->verbosity >= $this->scriptVerbosity) {
+            return $this->write($text, ...$args)->lf();
+        }
     }
 
-    public function skipLn($nb = 1)
+    /**
+     * Prints $nb line feeds
+     * @param int $nb
+     * @return $this
+     */
+    public function lf($nb = 1)
     {
         for (; $nb > 0; --$nb) {
             echo "\n";
@@ -374,31 +439,62 @@ class CLIm
         return self::ESC . '[' . implode(';', $cmd) . 'm';
     }
 
+    /**
+     * Set text color
+     * @param int|string $color
+     * @return $this
+     */
     public function color($color)
     {
         echo $this->formatEscape($color);
         return $this;
     }
 
+    /**
+     * Set background color
+     * @param int|string $color
+     * @return $this
+     */
     public function bgColor($color)
     {
         echo $this->formatEscape(null, $color);
         return $this;
     }
 
+    /**
+     * Reset text color and style
+     * @return $this
+     */
     public function reset()
     {
         echo self::ESC . '[0m';
         return $this;
     }
 
+    /**
+     * Return the number of available columns in terminal
+     * @return int
+     */
     public function getWidth()
     {
-        return exec(self::TPUT_BINARY . ' cols');
+        return (int) exec(self::TPUT_BINARY . ' cols');
     }
 
     /**
-     * Set verbosity
+     * Set script verbosity
+     * @param int $newVerbosity
+     * @param int $oldVerbosity
+     * @return $this
+     */
+    public function setScriptVerbosity($newVerbosity, &$oldVerbosity = 0)
+    {
+        $oldVerbosity = $this->scriptVerbosity;
+        $this->scriptVerbosity = $newVerbosity;
+        return $this;
+    }
+
+    /**
+     * Set current verbosity
      * @param int $newVerbosity
      * @param int $oldVerbosity
      * @return $this
@@ -409,14 +505,6 @@ class CLIm
         $this->verbosity = (int)$newVerbosity;
         return $this;
     }
-
-    /*
-    select
-
-    ## Macros
-    text
-    title
-    */
 
     public function clearLine()
     {
@@ -430,5 +518,11 @@ class CLIm
         $table->draw();
         return $this;
     }
+
+    /*
+    ## TODO Macros
+    title
+    frame
+    */
 }
 

@@ -74,7 +74,7 @@ class ProgressBar extends \CLIm\Widget
         echo $progress;
         $this->previousDisplay = true;
         if ($this->completed) {
-            $this->out->skipLn();
+            $this->out->lf();
         }
     }
 

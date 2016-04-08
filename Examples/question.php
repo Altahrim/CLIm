@@ -11,6 +11,6 @@ $prompt = $out->select('I let you choose the next prompt', ['~>', '>>', '#', '::
 $out->setPrompt($prompt[1], Colors::CYAN);
 
 $out->writeLn('Thanks!');
-$out->skipLn();
+$out->lf();
 $out->ask('Now, feel free to write something');
-$out->skipLn();
+$out->lf();
