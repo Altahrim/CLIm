@@ -1,11 +1,14 @@
 <?php
 namespace CLIm\Widgets;
 
+use CLIm\Helpers\Str;
+use CLIm\Widget;
+
 /**
  * Draw a table
  * @see http://www.amp-what.com/unicode/search/box%20drawing for more characters
  */
-class Table extends \CLIm\Widget
+class Table extends Widget
 {
     const ALIGN_LEFT = 1;
     const ALIGN_RIGHT = 2;
@@ -54,12 +57,13 @@ class Table extends \CLIm\Widget
                 $this->makeColumn($colId);
                 $col = &$this->columns[$colId];
                 if (is_array($str)) {
-                    // TODO find a better way to display tables
-                    $str = @implode(',', $str);
-                } elseif (is_object($str)) {
-                    $str = get_class($str);
+                    // TODO find a better way to handle arrays
+                    $str = array_map(function ($e) {
+                        return @implode(',', $e);
+                    }, $str);
+                    $str = implode("\n", $str);
                 }
-                $len = mb_strlen($str);
+                $len = Str::len($str, true);
                 $col['minWidth'] = max($col['minWidth'], $len);
                 $this->data[$rowId][$colId] = [
                     'len' => $len,
@@ -84,6 +88,7 @@ class Table extends \CLIm\Widget
 
     public function draw($flags = self::DISP_FRAME | self::DISP_COLS | self::DISP_ROWS)
     {
+        $this->out->reset();
         $showFrame = $flags & self::DISP_FRAME;
         $showCols = $flags & self::DISP_COLS;
         $showRows = $flags & self::DISP_ROWS;

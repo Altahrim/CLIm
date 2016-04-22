@@ -5,7 +5,7 @@ abstract class Widget
 {
     /**
      * Console
-     * @var \Console
+     * @var \CLIm
      */
     protected $out;
 

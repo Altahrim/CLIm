@@ -1,5 +1,6 @@
 <?php
 use \CLIm\Helpers\Colors;
+use \CLIm\Helpers\Str;
 use \CLIm\Helpers\Style;
 use \CLIm\Widgets\Table;
 
@@ -65,6 +66,9 @@ class CLIm
      */
     const TPUT_BINARY = 'tput';
 
+
+    private $documentRoot;
+
     /**
      * Return an instance of \CLIm
      * @return \CLIm
@@ -90,6 +94,11 @@ class CLIm
         // FIXME
     }
 
+    public function __destruct()
+    {
+        $this->reset()->lf();
+    }
+
     /**
      * Magic method __toString
      * Helps to display console state
@@ -102,24 +111,38 @@ class CLIm
             ->style(Style::BOLD)
             ->write('Colors: ', self::VERB_QUIET)
             ->style(Style::BOLD, true)
-            ->writeLn($this->colors->getPalette(), self::VERB_QUIET);
+            ->writeLn($this->colors->getPalette(), self::VERB_QUIET)
+            ->reset();
         return ob_get_clean();
     }
 
     /**
      * Register \CLIm error handlers
+     * @param string $documentRoot If specified, document root will be stripped from paths
+     *   resulting in a more readable output
      */
-    public function registerErrorHandlers()
+    public function registerErrorHandlers($documentRoot = '')
     {
+        $this->documentRoot = $documentRoot;
         set_exception_handler([$this, 'handleException']);
         set_error_handler([$this, 'handleError'], E_ALL);
         register_shutdown_function([$this, 'handleFatalError']);
     }
 
+    /**
+     * Display an error
+     * @param int $code
+     * @param string $message
+     * @param string $file
+     * @param int $line
+     * @param string[] $context
+     * @param bool $hideBacktrace
+     * @return bool
+     */
     public function handleError($code, $message, $file, $line, $context, $hideBacktrace = false)
     {
         if (!($code & error_reporting())) {
-            return;
+            return false;
         }
 
         $bt = [];
@@ -129,10 +152,14 @@ class CLIm
         }
 
         $this->displayError($this->errorCodeToString($code), $message, 0, $file, $line, $bt, $context);
-
-        // TODO Exit ?
+        return true;
     }
 
+    /**
+     * Display fatal error
+     * It's possible to catch fatal errors by registering this function as a shutdown function
+     * Then $this->handleError is used
+     */
     public function handleFatalError()
     {
         $error = error_get_last();
@@ -192,6 +219,7 @@ class CLIm
         // If script is in debug mode, display more context
         if ($this->scriptVerbosity >= self::VERB_DEBUG) {
             if (!empty($backtrace)) {
+                $backtrace = array_map([$this, 'formatTrace'], $backtrace);
                 $this
                     ->style(Style::BOLD)
                     ->writeLn('Backtrace:')
@@ -212,6 +240,41 @@ class CLIm
         }
 
         $this->lf(2);
+    }
+
+    protected function formatTrace($bt)
+    {
+        if (!isset($bt['file'])) {
+            $source = '';
+        } elseif (0 === strpos($bt['file'], $this->documentRoot)) {
+            $source = 0 === strpos($bt['file'], $this->documentRoot)
+                ? substr($bt['file'], strlen($this->documentRoot))
+                : $bt['file'];
+            $source .= ':' . $bt['line'];
+        }
+
+        $ret = [
+            'source' => $source,
+            'call' => $bt['function'],
+            'args' => ''
+        ];
+
+        if (isset($bt['object'])) {
+            $ret['call'] = $this->dump($bt['object']) . $bt['type'] . $ret['call'];
+        } elseif (isset($bt['class'])) {
+            $ret['call'] = $bt['class'] . $bt['type'] . $ret['call'];
+        }
+
+
+        $args = [];
+        foreach ($bt['args'] as $arg) {
+            ob_start();
+            $this->dump($arg);
+            $args[] = ob_get_clean();
+        }
+        $ret['args'] = implode(', ', $args);
+
+        return $ret;
     }
 
     /**
@@ -262,7 +325,7 @@ class CLIm
      */
     public function write($text, ... $args)
     {
-        if ($this->verbosity >= $this->scriptVerbosity) {
+        if ($this->verbosity <= $this->scriptVerbosity) {
             vprintf($text, $args);
         }
         return $this;
@@ -277,9 +340,10 @@ class CLIm
      */
     public function writeLn($text, ... $args)
     {
-        if ($this->verbosity >= $this->scriptVerbosity) {
-            return $this->write($text, ...$args)->lf();
+        if ($this->verbosity <= $this->scriptVerbosity) {
+            $this->write($text, ...$args)->lf();
         }
+        return $this;
     }
 
     /**
@@ -289,8 +353,10 @@ class CLIm
      */
     public function lf($nb = 1)
     {
-        for (; $nb > 0; --$nb) {
-            echo "\n";
+        if ($this->verbosity <= $this->scriptVerbosity) {
+            for (; $nb > 0; --$nb) {
+                echo PHP_EOL;
+            }
         }
         return $this;
     }
@@ -475,9 +541,18 @@ class CLIm
      * Return the number of available columns in terminal
      * @return int
      */
-    public function getWidth()
+    public function getCols()
     {
         return (int) exec(self::TPUT_BINARY . ' cols');
+    }
+
+    /**
+     * Return the number of available lines in current terminal
+     * @return int
+     */
+    public function getRows()
+    {
+        return (int) exec(self::TPUT_BINARY . ' lines');
     }
 
     /**
@@ -519,10 +594,114 @@ class CLIm
         return $this;
     }
 
-    /*
-    ## TODO Macros
-    title
-    frame
-    */
-}
+    /**
+     * Dump one or more variables
+     * Note : reset style and color
+     */
+    public function dump(... $vars)
+    {
+        foreach ($vars as $var) {
+            $type = gettype($var);
+            switch ($type) {
+                default:
+                    $this->write('%s(%s)', $type, $var);
+                    break;
+                case 'string':
+                    $len = Str::len($var, true);
+                    if ($len > 15) {
+                        $var = Str::sub($var, 0, 14) . '…';
+                    }
+                    $this->color(23)->write('String(%d) "%s"', $len, $var);
+                    break;
+                case 'boolean':
+                    $this->color(45)->write($var ? 'true' : 'false');
+                    break;
+                case 'object':
+                    $objId = spl_object_hash($var);
+                    $this->color(73)->write('Object(%s)', $objId);
+                    break;
+                case 'array':
+                    $this->color(166)->write('Array(%d)', count($var));
+                    break;
+                case 'NULL':
+                    $this->color(95)->write('NULL');
+            }
+        }
+        $this->reset();
 
+        return $this;
+    }
+
+    /**
+     * Shortcut to display a title
+     * @param $text
+     * @param array ...$args
+     * @todo Handle window with
+     */
+    public function title($text, ...$args)
+    {
+        $text = vsprintf($text, $args);
+        $len = Str::len($text, true);
+        $this
+            ->color(39);
+        $this
+            ->writeLn('     ╭' . str_repeat('─', $len + 2) . '╮')
+            ->writeLn('     │ ' . $text . ' │')
+            ->writeLn('     ╰' . str_repeat('─', $len + 2) . '╯');
+        $this
+            ->reset();
+    }
+
+    /**
+     * Shortcut to display a debug message
+     * Verbosity is changed to VERB_DEBUG for this message
+     * @param $text
+     * @param array ...$args
+     */
+    public function debug($text, ...$args)
+    {
+        $this
+            ->verbosity(self::VERB_DEBUG, $old)
+            ->color(250);
+        $this->writeLn($text, ...$args);
+        $this
+            ->verbosity($old)
+            ->reset();
+    }
+
+    /**
+     * Shortcut to display an alert message
+     * @param $text
+     * @param array ...$args
+     */
+    public function alert($text, ...$args)
+    {
+        $this->color(214);
+        $this->writeLn($text, ...$args);
+        $this->reset();
+    }
+
+    /**
+     * Shortcut to display an alert message
+     * @param $text
+     * @param array ...$args
+     */
+    public function success($text, ...$args)
+    {
+        $this->color(40);
+        $this->writeLn($text, ...$args);
+        $this->reset();
+    }
+
+    /**
+     * Shortcut to display an error message
+     * @param $text
+     * @param array ...$args
+     */
+    public function error($text, ...$args)
+    {
+        $this->color(160);
+        $this->writeLn($text, ...$args);
+        $this->reset();
+    }
+}

@@ -1,9 +1,15 @@
 <?php
 namespace CLIm\Widgets;
 
-// TODO Fix blinking
-// Redraw only required?
-class ProgressBar extends \CLIm\Widget
+use CLIm\Helpers\Str;
+use CLIm\Widget;
+
+/**
+ * Manage progress bar
+ * @todo Fix blinking
+ * @todo Redraw only required?
+ */
+class ProgressBar extends Widget
 {
     private $current;
     private $step;
@@ -39,7 +45,7 @@ class ProgressBar extends \CLIm\Widget
     public function nextStep()
     {
         if ($this->completed) {
-            return;
+            return true;
         }
 
         $this->current += $this->step;
@@ -53,9 +59,9 @@ class ProgressBar extends \CLIm\Widget
 
     private function draw()
     {
-        $availableWidth = $this->out->getWidth();
+        $availableWidth = $this->out->getCols();
         $progress = $this->getProgress();
-        $width = $availableWidth - mb_strlen($progress);
+        $width = $availableWidth - Str::len($progress, true);
 
         if ($this->previousDisplay) {
             $this->out->clearLine();
@@ -89,5 +95,7 @@ class ProgressBar extends \CLIm\Widget
                 $len = strlen($this->target);
                 return sprintf(' [%' . $len . 'd/%' . $len . 'd]', $this->current, $this->target);
         }
+
+        return false;
     }
 }
