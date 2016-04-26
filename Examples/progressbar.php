@@ -7,15 +7,42 @@ require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPA
 $out = CLIm::getInstance();
 $p   = new ProgressBar();
 
+// Gives best results
+\CLIm\Helpers\Cursor::hide();
+
 $out->writeLn('Progressbar:');
 
 // Target
 $p->init(666);
 
-// Step
+// Step size
 $p->setStep(5);
 
 // Do some stuff
 while(!$p->nextStep()) {
-    usleep(40000);
+    usleep(20000);
 }
+
+$out->line();
+
+// With current action
+$todo = [
+    'Initialization…',
+    'Inventing new steps',
+    'Trying to look busy',
+    'Launching `rm -rf /` on production servers',
+    'Now searching a new job for you!',
+    '' // An empty element remove the info
+];
+
+$p = new ProgressBar();
+$p->init(count($todo) - 1);
+foreach ($todo as $k => $action) {
+    if ($k > 1) {
+        usleep(rand(200000, 2000000));
+    }
+    $p->setCurrent($k, $action);
+}
+
+// With error
+// TODO

@@ -361,6 +361,11 @@ class CLIm
         return $this;
     }
 
+    public function line()
+    {
+        return $this->writeLn(str_repeat('—', $this->getCols()));
+    }
+
     public function ask($question)
     {
         $this
@@ -389,14 +394,14 @@ class CLIm
         $buf = '';
         foreach ($opts as $k => $v) {
             $answers[++$i] = $k;
-            $buf .= sprintf('%' . $len . "d. %s\n", $i, $v);
+            $buf .= sprintf(' %' . $len . "d. %s\n", $i, $v);
         }
         $this->write($buf)->displayPrompt();
         readline_callback_handler_install('', function () {});
         while (true) {
-            $r = array(STDIN);
-            $w = NULL;
-            $e = NULL;
+            $r = [STDIN];
+            $w = null;
+            $e = null;
             $n = stream_select($r, $w, $e, 100);
             if ($n && in_array(STDIN, $r)) {
                 $c = stream_get_contents(STDIN, 1);
@@ -408,7 +413,11 @@ class CLIm
                 if (null !== $invalidAnswer) {
                     $invalidAnswer($c);
                 }
-                $this->write($buf)->displayPrompt();
+                $this
+                    ->bell()
+                    ->writeLn($question, self::VERB_QUIET)
+                    ->write($buf)
+                    ->displayPrompt();
             }
         }
     }
@@ -459,20 +468,7 @@ class CLIm
      */
     public function clear()
     {
-        echo self::ESC, '[2J', self::ESC, '[H';
-        return $this;
-    }
-
-    /**
-     * Move cursor to a new position
-     * @param int $x
-     * @param int $y
-     * @return $this
-     */
-    public function moveTo($x = 1, $y = 1)
-    {
-        echo self::ESC . '[', $x, ';', $y, 'H';
-        return $this;
+        return $this->esc('[2J')->esc('[H');
     }
 
     /**
@@ -502,7 +498,7 @@ class CLIm
             $cmd[] = $bgColor;
         }
 
-        return self::ESC . '[' . implode(';', $cmd) . 'm';
+        return '[' . implode(';', $cmd) . 'm';
     }
 
     /**
@@ -512,8 +508,7 @@ class CLIm
      */
     public function color($color)
     {
-        echo $this->formatEscape($color);
-        return $this;
+        return $this->esc($this->formatEscape($color));
     }
 
     /**
@@ -523,8 +518,7 @@ class CLIm
      */
     public function bgColor($color)
     {
-        echo $this->formatEscape(null, $color);
-        return $this;
+        return $this->esc($this->formatEscape(null, $color));
     }
 
     /**
@@ -533,7 +527,12 @@ class CLIm
      */
     public function reset()
     {
-        echo self::ESC . '[0m';
+        return $this->esc('[0m');
+    }
+
+    public function esc($code)
+    {
+        fwrite(STDERR, self::ESC . $code);
         return $this;
     }
 
@@ -583,7 +582,7 @@ class CLIm
 
     public function clearLine()
     {
-        echo self::ESC, '[2K', self::ESC, '[G';
+        return $this->esc('[2K')->esc('[G');
     }
 
     public function table(array $data)

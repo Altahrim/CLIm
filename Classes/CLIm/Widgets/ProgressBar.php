@@ -1,6 +1,7 @@
 <?php
 namespace CLIm\Widgets;
 
+use CLIm\Helpers\Cursor;
 use CLIm\Helpers\Str;
 use CLIm\Widget;
 
@@ -15,9 +16,10 @@ class ProgressBar extends Widget
     private $step;
     private $target;
     private $completed;
+    private $pos;
 
     private $type = self::TYPE_NORMAL;
-
+    private $element = '';
 
     private $block = '█';
     private $previousDisplay;
@@ -26,35 +28,37 @@ class ProgressBar extends Widget
     CONST TYPE_PERCENT = 1;
     CONST TYPE_NORMAL  = 2;
 
-    public function init($target)
+    public function init($target, $element = '')
     {
         // TODO Check positive
         $this->target = (int) $target;
         $this->current = 0;
         $this->completed = false;
         $this->previousDisplay = false;
+        $this->element = $element;
         $this->draw();
     }
 
-    public function setStep($step)
+    public function setCurrent($current, $element = '')
     {
         // TODO Check positive
-        $this->step = (int) $step;
-    }
-
-    public function nextStep()
-    {
-        if ($this->completed) {
-            return true;
-        }
-
-        $this->current += $this->step;
+        $this->current = (int) $current;
         if ($this->current >= $this->target) {
             $this->current = $this->target;
             $this->completed = true;
         }
+        $this->element = $element;
         $this->draw();
         return $this->completed;
+    }
+
+    public function setStep($step = 1) {
+        $this->step = (int) $step;
+    }
+
+    public function nextStep($element = '')
+    {
+        return $this->setCurrent($this->current + $this->step, $element);
     }
 
     private function draw()
@@ -64,7 +68,14 @@ class ProgressBar extends Widget
         $width = $availableWidth - Str::len($progress, true);
 
         if ($this->previousDisplay) {
-            $this->out->clearLine();
+            Cursor::move($this->pos[0]);
+            $this->out->esc('[0J');
+        } else {
+            $this->pos = Cursor::getPos();
+            // Save some space (hack when reaching end of screen)
+            $this->out->lf(3);
+            $newPos = Cursor::getPos();
+            $this->pos[0] = max($newPos[0] - 3, $this->pos[0] - 3);
         }
 
         if ($this->completed) {
@@ -77,7 +88,18 @@ class ProgressBar extends Widget
             echo str_repeat($this->block, $len), str_repeat('▁', $width - $len);
             $this->out->reset();
         }
-        echo $progress;
+        $this->out->write($progress);
+        if ($this->element) {
+            $this->out
+                ->lf()
+                ->color(25)
+                ->write(':: ')
+                ->reset()
+                ->write($this->element)
+                ->color(25)
+                ->write(' ::')
+                ->reset();
+        }
         $this->previousDisplay = true;
         if ($this->completed) {
             $this->out->lf();

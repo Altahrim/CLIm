@@ -21,7 +21,7 @@ for ($i = 0; $i < 256;) {
         $out->reset()->lf();
     }
 }
-$out->lf(2);
+$out->lf()->line()->lf();
 
 // Then background
 $out
