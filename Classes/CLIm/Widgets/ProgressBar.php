@@ -6,9 +6,8 @@ use CLIm\Helpers\Str;
 use CLIm\Widget;
 
 /**
- * Manage progress bar
- * @todo Fix blinking
- * @todo Redraw only required?
+ * Manage progress bars
+ * @todo Fix blinking / Redraw only required?
  */
 class ProgressBar extends Widget
 {
@@ -17,6 +16,7 @@ class ProgressBar extends Widget
     private $target;
     private $completed;
     private $pos;
+    private $error;
 
     private $type = self::TYPE_NORMAL;
     private $element = '';
@@ -28,6 +28,11 @@ class ProgressBar extends Widget
     CONST TYPE_PERCENT = 1;
     CONST TYPE_NORMAL  = 2;
 
+    /**
+     * Initialization
+     * @param $target
+     * @param string $element
+     */
     public function init($target, $element = '')
     {
         // TODO Check positive
@@ -36,9 +41,16 @@ class ProgressBar extends Widget
         $this->completed = false;
         $this->previousDisplay = false;
         $this->element = $element;
+        $this->error = false;
         $this->draw();
     }
 
+    /**
+     * Set current advancement
+     * @param $current
+     * @param string $element
+     * @return bool
+     */
     public function setCurrent($current, $element = '')
     {
         // TODO Check positive
@@ -52,15 +64,28 @@ class ProgressBar extends Widget
         return $this->completed;
     }
 
+    /**
+     * Set step size
+     * Useful for nextStep()
+     * @param int $step
+     */
     public function setStep($step = 1) {
         $this->step = (int) $step;
     }
 
+    /**
+     * Go to next step (as configured in setStep)
+     * @param string $element
+     * @return bool
+     */
     public function nextStep($element = '')
     {
         return $this->setCurrent($this->current + $this->step, $element);
     }
 
+    /**
+     * (Re)draw the progress bar
+     */
     private function draw()
     {
         $availableWidth = $this->out->getCols();
@@ -79,15 +104,16 @@ class ProgressBar extends Widget
         }
 
         if ($this->completed) {
-            $this->out->color(28);
+            $this->out->color($this->error ? 52 : 28);
             echo str_repeat($this->block, $width);
             $this->out->reset();
         } else {
             $len = floor($width * ($this->current / $this->target));
-            $this->out->color('#333333');
+            $this->out->color($this->error ? 52 : 30);
             echo str_repeat($this->block, $len), str_repeat('▁', $width - $len);
             $this->out->reset();
         }
+        $progress = str_replace('%', '%%', $progress);
         $this->out->write($progress);
         if ($this->element) {
             $this->out
@@ -106,6 +132,10 @@ class ProgressBar extends Widget
         }
     }
 
+    /**
+     * Format progression widget
+     * @return string
+     */
     private function getProgress()
     {
         switch ($this->type) {
@@ -118,6 +148,24 @@ class ProgressBar extends Widget
                 return sprintf(' [%' . $len . 'd/%' . $len . 'd]', $this->current, $this->target);
         }
 
-        return false;
+        return '';
+    }
+
+    /**
+     * Change progression widget type
+     * @param $type
+     */
+    public function setType($type)
+    {
+        $this->type = (int) $type;
+    }
+
+    /**
+     * Mark the progress bar as errored
+     */
+    public function setError()
+    {
+        $this->error = true;
+        $this->draw();
     }
 }

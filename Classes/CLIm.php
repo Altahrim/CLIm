@@ -77,6 +77,7 @@ class CLIm
     {
         if (null === self::$instance) {
             self::$instance = new self;
+            self::$instance->init();
         }
 
         return self::$instance;
@@ -89,13 +90,16 @@ class CLIm
     {
         $this->colors = new Colors();
         $this->style = new Style();
-        $this->setPrompt('> ');
         //$isRedirected = posix_isatty(STDOUT);
         // FIXME
     }
 
+    /**
+     * Destructor
+     */
     public function __destruct()
     {
+        \CLIm\Helpers\Cursor::show();
         $this->reset()->lf();
     }
 
@@ -114,6 +118,16 @@ class CLIm
             ->writeLn($this->colors->getPalette(), self::VERB_QUIET)
             ->reset();
         return ob_get_clean();
+    }
+
+    /**
+     * Configure terminal in a know state
+     */
+    private function init()
+    {
+        $this->setPrompt('> ');
+        $this->reset();
+        \CLIm\Helpers\Cursor::hide();
     }
 
     /**
@@ -444,12 +458,10 @@ class CLIm
      */
     protected function displayPrompt()
     {
-        echo
-        $this->formatEscape($this->prompt['color'], $this->prompt['bgColor'], $this->prompt['flags']),
-        $this->prompt['text'];
-        $this->reset();
-        echo ' ';
-        return $this;
+        return $this
+            ->esc($this->formatEscape($this->prompt['color'], $this->prompt['bgColor'], $this->prompt['flags']))
+            ->write($this->prompt['text'])
+            ->reset();
     }
 
     /**
@@ -480,9 +492,7 @@ class CLIm
      */
     public function style($flags = null, $remove = false)
     {
-        $flags = (int)$flags;
-        echo $this->formatEscape(null, null, $flags, $remove);
-        return $this;
+        return $this->esc($this->formatEscape(null, null, $flags, $remove));
     }
 
     private function formatEscape($color = null, $bgColor = null, $flags = null, $invertFlags = false)
