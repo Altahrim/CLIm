@@ -101,6 +101,7 @@ class ProgressBar extends Widget
             $this->out->lf(3);
             $newPos = Cursor::getPos();
             $this->pos[0] = max($newPos[0] - 3, $this->pos[0] - 3);
+            Cursor::move($this->pos[0]);
         }
 
         if ($this->completed) {

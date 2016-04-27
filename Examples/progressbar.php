@@ -44,5 +44,16 @@ foreach ($todo as $k => $action) {
     $p->setCurrent($k, $action);
 }
 
+$out->line();
+
 // With error
-// TODO
+$p = new ProgressBar();
+$p->init(count($todo));
+foreach ($todo as $k => $action) {
+    usleep(200000);
+    if (4 === $k) {
+        $p->setError();
+        break;
+    }
+    $p->setCurrent($k, $action);
+}
