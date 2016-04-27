@@ -90,8 +90,8 @@ class CLIm
     {
         $this->colors = new Colors();
         $this->style = new Style();
+        // FIXME Detect redirection and add support for it
         //$isRedirected = posix_isatty(STDOUT);
-        // FIXME
     }
 
     /**
@@ -540,9 +540,19 @@ class CLIm
         return $this->esc('[0m');
     }
 
+    /**
+     * Print an ANSI sequence
+     * @param $code
+     * @return $this
+     */
     public function esc($code)
     {
-        fwrite(STDERR, self::ESC . $code);
+        $str = self::ESC . $code;
+        if (is_resource(STDERR)) {
+            fwrite(STDERR, $str);
+        } else  {
+            echo $str;
+        }
         return $this;
     }
 
