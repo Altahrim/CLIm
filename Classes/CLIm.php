@@ -490,6 +490,14 @@ class CLIm
     }
 
     /**
+     * Get script verbosity
+     */
+    public function getScriptVerbosity()
+    {
+        return $this->scriptVerbosity;
+    }
+
+    /**
      * Set current verbosity
      * @param int $newVerbosity
      * @param int $oldVerbosity
@@ -500,6 +508,11 @@ class CLIm
         $oldVerbosity = $this->verbosity;
         $this->verbosity = (int)$newVerbosity;
         return $this;
+    }
+
+    public function getVerbosity()
+    {
+        return $this->verbosity;
     }
 
     public function clearLine()
