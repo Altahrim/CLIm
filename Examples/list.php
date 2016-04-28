@@ -1,6 +1,6 @@
 #!/usr/bin/php
 <?php
-use \CLIm\Widgets\BulletList;
+use \CLIm\Widgets\ItemList;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
@@ -18,5 +18,5 @@ $data = [
     'I could continue like this for a while'
 ];
 
-$list = new BulletList();
+$list = new ItemList();
 $list->draw($data);

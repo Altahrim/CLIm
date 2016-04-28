@@ -6,7 +6,7 @@ use CLIm\Widget;
 /**
  * Draw an unordered list
  */
-class BulletList extends Widget
+class ItemList extends Widget
 {
     /**
      * Bullets used for each level

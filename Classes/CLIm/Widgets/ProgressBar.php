@@ -94,7 +94,7 @@ class ProgressBar extends Widget
 
         if ($this->previousDisplay) {
             Cursor::move($this->pos[0]);
-            $this->out->esc('[0J');
+            $this->out->esc('0J');
         } else {
             $this->pos = Cursor::getPos();
             // Save some space (hack when reaching end of screen)

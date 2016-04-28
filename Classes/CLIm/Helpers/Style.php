@@ -24,17 +24,17 @@ class Style
     /**
      * Format style into
      * @param int $styles
-     * @param bool $remove
+     * @param bool $add
      * @return mixed
      */
-    public static function format($styles, $remove = false)
+    public static function format($styles, $add = true)
     {
         $cmd = [];
         if (null !== $styles) {
             for ($i = 0; $i <= 7; ++$i) {
                 $bit = pow(2, $i);
                 if (0 !== ($bit & $styles)) {
-                    if ($remove) {
+                    if (!$add) {
                         $bit += 20;
                     }
                     $cmd[] = $bit;
@@ -42,7 +42,6 @@ class Style
             }
         }
 
-        return implode(';', $cmd);
+        return implode(';', $cmd) . 'm';
     }
-
 }

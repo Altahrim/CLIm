@@ -55,10 +55,10 @@ class Colors
             case self::PALETTE_8:
                 $color = $this->reducePalette($color);
                 $base  = $isBackground ? 40 : 30;
-                return $base + $color;
+                return $base + $color . 'm';
             case self::PALETTE_256:
                 $prefix = $isBackground ? '48' : '38';
-                return $prefix . ';5;' . ($color % 256);
+                return $prefix . ';5;' . ($color % 256) . 'm';
         }
     }
 

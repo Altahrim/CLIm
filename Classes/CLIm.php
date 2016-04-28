@@ -125,7 +125,6 @@ class CLIm
      */
     private function init()
     {
-        $this->setPrompt('> ');
         $this->reset();
         \CLIm\Helpers\Cursor::hide();
     }
@@ -380,90 +379,6 @@ class CLIm
         return $this->writeLn(str_repeat('—', $this->getCols()));
     }
 
-    public function ask($question)
-    {
-        $this
-            ->bell()
-            ->writeLn($question, self::VERB_QUIET)
-            ->displayPrompt();
-        $answer = readline();
-        return $answer;
-    }
-
-    /**
-     * Display a question and some answers so the user can select one
-     * @param string $question
-     * @param array $opts
-     * @param callable|null $invalidAnswer
-     * @return array [Selected key, Selected value]
-     */
-    public function select($question, array $opts, callable $invalidAnswer = null)
-    {
-        $this
-            ->bell()
-            ->writeLn($question, self::VERB_QUIET);
-        $i = 0;
-        $len = strlen(count($opts));
-        $answers = [];
-        $buf = '';
-        foreach ($opts as $k => $v) {
-            $answers[++$i] = $k;
-            $buf .= sprintf(' %' . $len . "d. %s\n", $i, $v);
-        }
-        $this->write($buf)->displayPrompt();
-        readline_callback_handler_install('', function () {});
-        while (true) {
-            $r = [STDIN];
-            $w = null;
-            $e = null;
-            $n = stream_select($r, $w, $e, 100);
-            if ($n && in_array(STDIN, $r)) {
-                $c = stream_get_contents(STDIN, 1);
-                $this->writeLn($c);
-                if (isset($answers[$c])) {
-                    readline_callback_handler_remove();
-                    return [$answers[$c], $opts[$answers[$c]]];
-                }
-                if (null !== $invalidAnswer) {
-                    $invalidAnswer($c);
-                }
-                $this
-                    ->bell()
-                    ->writeLn($question, self::VERB_QUIET)
-                    ->write($buf)
-                    ->displayPrompt();
-            }
-        }
-    }
-
-    /**
-     * Personalize prompt
-     * @param string $prompt
-     * @param string|int|null $color
-     * @param string|int|null $bgColor
-     * @param int|null $flags
-     */
-    public function setPrompt($prompt, $color = null, $bgColor = null, $flags = null)
-    {
-        $this->prompt = [
-            'text' => (string)$prompt,
-            'color' => $color,
-            'bgColor' => $bgColor,
-            'flags' => $flags
-        ];
-    }
-
-    /**
-     * Display prompt
-     */
-    protected function displayPrompt()
-    {
-        return $this
-            ->esc($this->formatEscape($this->prompt['color'], $this->prompt['bgColor'], $this->prompt['flags']))
-            ->write($this->prompt['text'])
-            ->reset();
-    }
-
     /**
      * Ring a bell
      * @return $this
@@ -480,35 +395,19 @@ class CLIm
      */
     public function clear()
     {
-        return $this->esc('[2J')->esc('[H');
+        return $this->esc('2J')->esc('H');
     }
 
     /**
      * Add or remove some rendering flag
-     * @param int|null $flags
-     * @param bool $remove
+     * @param int $flags
+     * @param bool $add
      * @return $this
      * @see \CLIm\Helpers\Style
      */
-    public function style($flags = null, $remove = false)
+    public function style($flags, $add = true)
     {
-        return $this->esc($this->formatEscape(null, null, $flags, $remove));
-    }
-
-    private function formatEscape($color = null, $bgColor = null, $flags = null, $invertFlags = false)
-    {
-        $cmd = [];
-        if (null !== $flags && $flags = $this->style->format($flags, (bool)$invertFlags)) {
-            $cmd[] = $flags;
-        }
-        if (null !== $color && $color = $this->colors->format($color)) {
-            $cmd[] = $color;
-        }
-        if (null !== $bgColor && $bgColor = $this->colors->format($bgColor, true)) {
-            $cmd[] = $bgColor;
-        }
-
-        return '[' . implode(';', $cmd) . 'm';
+        return $this->esc($this->style->format($flags, (bool)$add));
     }
 
     /**
@@ -518,7 +417,7 @@ class CLIm
      */
     public function color($color)
     {
-        return $this->esc($this->formatEscape($color));
+        return $this->esc($this->colors->format($color));
     }
 
     /**
@@ -528,7 +427,7 @@ class CLIm
      */
     public function bgColor($color)
     {
-        return $this->esc($this->formatEscape(null, $color));
+        return $this->esc($this->colors->format($color, true));
     }
 
     /**
@@ -537,7 +436,7 @@ class CLIm
      */
     public function reset()
     {
-        return $this->esc('[0m');
+        return $this->esc('0m');
     }
 
     /**
@@ -545,9 +444,12 @@ class CLIm
      * @param $code
      * @return $this
      */
-    public function esc($code)
+    public function esc($code, $return = false)
     {
-        $str = self::ESC . $code;
+        $str = self::ESC . '[' . $code;
+        if ($return) {
+            return $str;
+        }
         if (is_resource(STDERR)) {
             fwrite(STDERR, $str);
         } else  {
@@ -602,7 +504,7 @@ class CLIm
 
     public function clearLine()
     {
-        return $this->esc('[2K')->esc('[G');
+        return $this->esc('2K')->esc('G');
     }
 
     public function table(array $data)

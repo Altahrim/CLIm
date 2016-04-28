@@ -8,12 +8,12 @@ class Cursor
 {
     public static function savePos()
     {
-        \CLim::getInstance()->esc('[s');
+        \CLim::getInstance()->esc('s');
     }
 
     public static function restore()
     {
-        \CLim::getInstance()->esc('[u');
+        \CLim::getInstance()->esc('u');
     }
 
     /**
@@ -24,7 +24,7 @@ class Cursor
     public static function getPos()
     {
         $out = \CLIm::getInstance();
-        $out->esc('[6n');
+        $out->esc('6n');
 
         $row = $col = '';
         $ptr = &$row;
@@ -60,16 +60,16 @@ class Cursor
      */
     public static function move($x = 1, $y = 1)
     {
-        return \CLim::getInstance()->esc('[' . $x . ';' . $y . 'H');
+        return \CLim::getInstance()->esc($x . ';' . $y . 'H');
     }
 
     public static function hide()
     {
-        return \CLim::getInstance()->esc('[?25l');
+        return \CLim::getInstance()->esc('?25l');
     }
 
     public static function show()
     {
-        return \CLim::getInstance()->esc('[?25h');
+        return \CLim::getInstance()->esc('?25h');
     }
 }
