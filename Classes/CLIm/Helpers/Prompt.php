@@ -5,6 +5,7 @@ namespace CLIm\Helpers;
  * Prompt for answers from user
  * Note: it seems impossible to include escapes characters in readline prompt. So, impossible to have a different
  * color for prompt and for answer (and same for completions)
+ * @todo Factorization
  */
 class Prompt
 {
