@@ -65,6 +65,26 @@ class Prompt
     }
 
     /**
+     * Add (or replace) a single answer
+     * @param $questionId
+     * @param $answer
+     */
+    public static function setAnswer($questionId, $answer)
+    {
+        self::$answers[$questionId] = $answer;
+    }
+
+    /**
+     * Remove a single answer
+     * Useful if an invalid answer was provided
+     * @param $questionId
+     */
+    public static function unsetAnswer($questionId)
+    {
+        unset(self::$answers[$questionId]);
+    }
+
+    /**
      * Enable (or disable) the recording of answers
      * @param bool $activate
      */
@@ -160,6 +180,10 @@ class Prompt
         }
         $out->reset();
 
+        if (self::$recordEnabled && $qid) {
+            self::$answers[$qid] = $answer;
+        }
+
         return $answer;
     }
     
@@ -222,6 +246,11 @@ class Prompt
             }
         }
         Cursor::hide();
+
+        if (self::$recordEnabled && $qid) {
+            self::$answers[$qid] = $buffer;
+        }
+
         return $buffer;
     }
 
@@ -256,7 +285,7 @@ class Prompt
         $out
             ->bell()
             ->write($question, \CLIm::VERB_QUIET);
-        if ($qid) {
+        if ($qid && $out->getScriptVerbosity() >= \CLIm::VERB_DEBUG) {
             $out->debug(' [' . $qid . ']');
         } else {
             $out->lf();
@@ -288,10 +317,16 @@ class Prompt
         }
 
         // No answer (or invalid one), prompt user
-        return self::readChar(function ($c) use ($out, $answers, $opts, $oldVerb) {
+        return self::readChar(function ($c) use ($out, $answers, $opts, $oldVerb, $qid) {
             if (isset($answers[$c])) {
                 $out->writeLn($c)->reset()->verbosity($oldVerb);
-                return [$answers[$c], $opts[$answers[$c]]];
+                $ret = [$answers[$c], $opts[$answers[$c]]];
+
+                if (self::$recordEnabled && $qid) {
+                    self::$answers[$qid] = $ret;
+                }
+
+                return $ret;
             }
 
             return false;
