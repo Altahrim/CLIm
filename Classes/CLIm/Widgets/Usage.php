@@ -46,14 +46,25 @@ class Usage extends Widget
     private $sections;
 
     /**
+     * Available sub commands
+     * @var string[]
+     */
+    private $commands;
+
+    /**
      * Available options
      * @var array
      */
     private $options;
 
-    const STR_OPTIONS = 'Options:';
-    const STR_USAGE = 'Usage:';
+    /**
+     * Minimal lenghts for display
+     * @var int[]
+     */
+    private $minLengths;
 
+    const STR_OPTIONS = 'Options:';
+    const STR_COMMANDS = 'Commands:';
     /**
      * Constructor
      */
@@ -63,8 +74,16 @@ class Usage extends Widget
         $this->name = isset($_SERVER['argv'][0]) ? $_SERVER['argv'][0] : 'cmd';
         $this->usages = [];
         $this->sections = [];
+        $this->commands = [];
         $this->options = [];
+        $this->minLengths = [
+            'short' => 0,
+            'long' => 0,
+            'cmd' => 0
+        ];
     }
+
+    const STR_USAGE = 'Usage:';
 
     /**
      * Add an usage
@@ -132,7 +151,24 @@ class Usage extends Widget
      */
     public function addOption(array $option)
     {
+        if (isset($option['short'])) {
+            $this->minLengths['short'] = max($this->minLengths['short'], mb_strlen($option['short']));
+        }
+        if (isset($option['long'])) {
+            $this->minLengths['long'] = max($this->minLengths['long'], mb_strlen($option['long']));
+        }
         $this->options[] = $option;
+    }
+
+    /**
+     * Add a sub-command
+     * @param string $cmd
+     * @param string $desc
+     */
+    public function addCommand($cmd, $desc)
+    {
+        $this->minLengths['cmd'] = max($this->minLengths['cmd'], mb_strlen($cmd));
+        $this->commands[$cmd] = $desc;
     }
 
     /**
@@ -168,6 +204,19 @@ class Usage extends Widget
 
         if ($this->longDesc) {
             $this->out->writeLn($this->longDesc)->lf();
+        }
+
+        if (!empty($this->commands)) {
+            ksort($this->commands);
+            $this->drawSectionTitle(self::STR_COMMANDS);
+            foreach ($this->commands as $cmd => $desc) {
+                $this->out
+                    ->style(Style::BOLD)
+                    ->write('  %-' . $this->minLengths['cmd'] . 's: ', $cmd)
+                    ->style(Style::BOLD, false)
+                    ->writeLn($desc);
+            }
+            $this->out->lf();
         }
         
         if (!empty($this->options)) {
@@ -239,7 +288,16 @@ class Usage extends Widget
     {
         $short = isset($opt['short']) ? $opt['short'] : '';
         $long = isset($opt['long']) ? $opt['long'] : '';
-        $sep = empty($short) || empty($long) ? ' ' : ',';
-        $this->out->write(" %2s%s %12s: %s\n", $short, $sep, $long, $opt['desc']);
+        $sep = empty($short) || empty($long)
+            ? $this->minLengths['long'] < 1 ? '' : '  '
+            : ', ';
+
+        $this->out->writeLn(
+            '  %-' . $this->minLengths['short'] . 's%s%-' . $this->minLengths['long'] . 's: %s',
+            $short,
+            $sep,
+            $long,
+            $opt['desc']
+        );
     }
 }

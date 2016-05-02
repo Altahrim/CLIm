@@ -9,6 +9,10 @@ namespace CLIm\Helpers;
  */
 class Prompt
 {
+    const ALLOWED_YES = ['1', 'true', 'yes', 'y'];
+    const ALLOWED_NO = ['0', 'false', 'no', 'n'];
+
+
     /**
      * Pre-defined answers
      * @var string[]
@@ -186,7 +190,57 @@ class Prompt
 
         return $answer;
     }
-    
+
+    /**
+     * Display a question and wait for an answer.
+     * The answer is converted to boolean if possible.
+     * @param string $question
+     * @param bool|null $default If not null, $default will be used as an answer if answer is empty
+     * @param string $qid
+     * @return bool|null
+     */
+    public static function askBool($question, $default = null, $qid = null)
+    {
+        $answer = self::ask($question, $qid);
+        while (true) {
+            if (strlen($answer) === 0 && null !== $default) {
+                return (bool)$default;
+            }
+
+            $bool = self::castToBool($answer);
+            if (null !== $bool) {
+                return $bool;
+            }
+
+            self::displayPrompt();
+            $answer = readline();
+        };
+    }
+
+    /**
+     * Cast a string to boolean
+     * If conversion is not possible, returns null
+     * @param $str
+     * @return bool|null
+     */
+    protected static function castToBool($str)
+    {
+        if (in_array($str, self::ALLOWED_YES, true)) {
+            return true;
+        }
+        if (in_array($str, self::ALLOWED_NO, true)) {
+            return false;
+        }
+        return null;
+    }
+
+    /**
+     * Hidden prompt. Could be useful for password
+     * @param string $question
+     * @param bool $showStars
+     * @param string $qid
+     * @return string
+     */
     public static function hidden($question, $showStars = true, $qid = null)
     {
         readline_callback_handler_install('', function () {});

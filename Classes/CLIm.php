@@ -570,6 +570,7 @@ class CLIm
      * Shortcut to display a title
      * @param $text
      * @param array ...$args
+     * @return $this
      * @todo Handle window with
      */
     public function title($text, ...$args)
@@ -584,6 +585,7 @@ class CLIm
             ->writeLn('     ╰' . str_repeat('─', $len + 2) . '╯');
         $this
             ->reset();
+        return $this;
     }
 
     /**
@@ -591,6 +593,7 @@ class CLIm
      * Verbosity is changed to VERB_DEBUG for this message
      * @param $text
      * @param array ...$args
+     * @return $this
      */
     public function debug($text, ...$args)
     {
@@ -601,41 +604,48 @@ class CLIm
         $this
             ->verbosity($old)
             ->reset();
+        return $this;
     }
 
     /**
      * Shortcut to display an alert message
      * @param $text
      * @param array ...$args
+     * @return $this
      */
     public function alert($text, ...$args)
     {
         $this->color(214);
         $this->writeLn($text, ...$args);
         $this->reset();
+        return $this;
     }
 
     /**
      * Shortcut to display an alert message
      * @param $text
      * @param array ...$args
+     * @return $this
      */
     public function success($text, ...$args)
     {
         $this->color(40);
         $this->writeLn($text, ...$args);
         $this->reset();
+        return $this;
     }
 
     /**
      * Shortcut to display an error message
      * @param $text
      * @param array ...$args
+     * @return $this
      */
     public function error($text, ...$args)
     {
         $this->color(160);
         $this->writeLn($text, ...$args);
         $this->reset();
+        return $this;
     }
 }
