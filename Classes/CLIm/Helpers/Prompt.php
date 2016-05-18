@@ -278,9 +278,9 @@ class Prompt
                     case "\e": // Escape character
                         break;
                     case "\x7f": // Backspace
-                        if ($length > 1) {
-                            $buffer = substr($buffer, 0, -1);
+                        if ($length >= 1) {
                             --$length;
+                            $buffer = $length ? '' : substr($buffer, 0, -1);
                             if ($showStars) {
                                 $out->esc('1D')->esc('0K');
                             }

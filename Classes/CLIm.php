@@ -100,7 +100,7 @@ class CLIm
     public function __destruct()
     {
         \CLIm\Helpers\Cursor::show();
-        $this->reset()->lf();
+        $this->reset();
     }
 
     /**
