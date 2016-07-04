@@ -93,7 +93,7 @@ class Colors
 
     private function detectPalette()
     {
-        $nbColors = (int) exec(\CLIm::TPUT_BINARY . ' colors');
+        $nbColors = \CLIm::getInstance()->getColors();
         $modes = [self::PALETTE_8, self::PALETTE_256];
         $palette = self::PALETTE_NONE;
         foreach ($modes as $mode) {

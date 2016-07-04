@@ -45,10 +45,16 @@ class CLIm
     const VERB_DEBUG = 4;
 
     /**
-     * Prompt description
-     * @var array
+     * Standard output
+     * @var resource
      */
-    private $prompt;
+    private $stdOut = STDOUT;
+
+    /**
+     * Standard error output
+     * @var resource
+     */
+    private $stdErr = STDERR;
 
     /**
      * Singleton
@@ -90,8 +96,6 @@ class CLIm
     {
         $this->colors = new Colors();
         $this->style = new Style();
-        // FIXME Detect redirection and add support for it
-        //$isRedirected = posix_isatty(STDOUT);
     }
 
     /**
@@ -140,6 +144,34 @@ class CLIm
         set_exception_handler([$this, 'handleException']);
         set_error_handler([$this, 'handleError'], E_ALL);
         register_shutdown_function([$this, 'handleFatalError']);
+    }
+
+    /**
+     * Checks if CLIm normal output is a terminal
+     * @return bool
+     */
+    public function stdOutIsTerm()
+    {
+        return $this->fileIsTerm($this->stdOut);
+    }
+
+    /**
+     * Checks if CLIm error output is a terminal
+     * @return bool
+     */
+    public function stdErrIsTerm()
+    {
+        return $this->fileIsTerm($this->stdErr);
+    }
+
+    /**
+     * Checks if $f is a terminal
+     * @param resource $f
+     * @return bool
+     */
+    protected function fileIsTerm($f)
+    {
+        return is_resource($f) && posix_isatty($f);
     }
 
     /**
@@ -339,7 +371,7 @@ class CLIm
     public function write($text, ... $args)
     {
         if ($this->verbosity <= $this->scriptVerbosity) {
-            vprintf($text, $args);
+            fwrite($this->stdOut, vsprintf($text, $args));
         }
         return $this;
     }
@@ -441,7 +473,8 @@ class CLIm
 
     /**
      * Print an ANSI sequence
-     * @param $code
+     * @param string $code
+     * @param bool $return
      * @return $this
      */
     public function esc($code, $return = false)
@@ -450,11 +483,13 @@ class CLIm
         if ($return) {
             return $str;
         }
-        if (is_resource(STDERR)) {
-            fwrite(STDERR, $str);
-        } else  {
-            echo $str;
+
+        if ($this->stdErrIsTerm()) {
+            fwrite($this->stdErr, $str);
+        } elseif ($this->stdOutIsTerm()) {
+            fwrite($this->stdOut, $str);
         }
+
         return $this;
     }
 
@@ -464,7 +499,11 @@ class CLIm
      */
     public function getCols()
     {
-        return (int) exec(self::TPUT_BINARY . ' cols');
+        if ($this->stdOutIsTerm()) {
+            return (int) exec(self::TPUT_BINARY . ' cols');
+        }
+
+        return 80;
     }
 
     /**
@@ -473,7 +512,24 @@ class CLIm
      */
     public function getRows()
     {
-        return (int) exec(self::TPUT_BINARY . ' lines');
+        if ($this->stdOutIsTerm()) {
+            return (int)exec(self::TPUT_BINARY . ' lines');
+        }
+
+        return 50;
+    }
+
+    /**
+     * Return the number of available colors in current terminal
+     * @return int
+     */
+    public function getColors()
+    {
+        if ($this->stdOutIsTerm()) {
+            return (int) exec(\CLIm::TPUT_BINARY . ' colors');
+        }
+
+        return 0;
     }
 
     /**
