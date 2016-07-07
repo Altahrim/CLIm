@@ -500,7 +500,7 @@ class CLIm
     public function getCols()
     {
         if ($this->stdOutIsTerm()) {
-            return (int) exec(self::TPUT_BINARY . ' cols');
+            return $this->execTput('cols');
         }
 
         return 80;
@@ -513,23 +513,20 @@ class CLIm
     public function getRows()
     {
         if ($this->stdOutIsTerm()) {
-            return (int)exec(self::TPUT_BINARY . ' lines');
+            return $this->execTput('lines');
         }
 
         return 50;
     }
 
     /**
-     * Return the number of available colors in current terminal
+     * Execute a tput command
+     * @param string $cmd
      * @return int
      */
-    public function getColors()
+    public static function execTput($cmd)
     {
-        if ($this->stdOutIsTerm()) {
-            return (int) exec(\CLIm::TPUT_BINARY . ' colors');
-        }
-
-        return 0;
+        return exec(\CLIm::TPUT_BINARY . ' ' . escapeshellarg($cmd));
     }
 
     /**
