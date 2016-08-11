@@ -59,7 +59,7 @@ class Prompt
         } elseif (empty($json)) {
             throw new \Exception('Impossible to load answers: file "' . $filepath . '" is empty');
         }
-        
+
         $data = json_decode($json, true);
         if (JSON_ERROR_NONE !== json_last_error()) {
             throw new \Exception('Impossible to load answers: invalid json data (' . json_last_error_msg() . ')');
@@ -243,11 +243,17 @@ class Prompt
      */
     public static function hidden($question, $showStars = true, $qid = null)
     {
-        readline_callback_handler_install('', function () {});
+        $hasAnswer = null !== $qid && isset(self::$answers[$qid]);
         $out = \CLIm::getInstance();
-        Cursor::savePos();
-        Cursor::show();
-        $out->bell();
+        if ($hasAnswer) {
+            if ($out->getScriptVerbosity() <= \CLIm::VERB_QUIET) {
+                return (string)self::$answers[$qid];
+            }
+        } else {
+            // If we don't have the answer yet, question must be displayed
+            $out->setScriptVerbosity(max(\CLIm::VERB_VERBOSE, $out->getScriptVerbosity()), $oldVerb);
+        }
+
         if (strlen($question)) {
             $out->write($question);
         }
@@ -256,15 +262,19 @@ class Prompt
         } else {
             $out->lf();
         }
-        self::displayPrompt();
 
-        if (isset(self::$answers[$qid])) {
+        self::displayPrompt();
+        if ($hasAnswer) {
             $answer = (string) self::$answers[$qid];
             if ($showStars) {
                 $out->writeLn(str_repeat('•', mb_strlen($answer)));
             }
             return $answer;
         }
+
+        readline_callback_handler_install('', function () {});
+        Cursor::show();
+        $out->bell();
 
         $buffer = '';
         $length = 0;
@@ -300,6 +310,7 @@ class Prompt
             }
         }
         Cursor::hide();
+        $out->setScriptVerbosity($oldVerb);
 
         if (self::$recordEnabled && $qid) {
             self::$answers[$qid] = $buffer;
