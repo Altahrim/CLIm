@@ -434,6 +434,7 @@ class CLIm
      * Add or remove some rendering flag
      * @param int $flags
      * @param bool $add
+     * @param bool $return
      * @return $this
      * @see \CLIm\Helpers\Style
      */
@@ -445,6 +446,7 @@ class CLIm
     /**
      * Set text color
      * @param int|string $color
+     * @param bool $return
      * @return $this
      */
     public function color($color, $return = false)
@@ -455,6 +457,7 @@ class CLIm
     /**
      * Set background color
      * @param int|string $color
+     * @param bool $return
      * @return $this
      */
     public function bgColor($color, $return = false)
@@ -464,6 +467,7 @@ class CLIm
 
     /**
      * Reset text color and style
+     * @param bool $return
      * @return $this
      */
     public function reset($return = false)
