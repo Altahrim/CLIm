@@ -437,9 +437,9 @@ class CLIm
      * @return $this
      * @see \CLIm\Helpers\Style
      */
-    public function style($flags, $add = true)
+    public function style($flags, $add = true, $return = false)
     {
-        return $this->esc($this->style->format($flags, (bool)$add));
+        return $this->esc($this->style->format($flags, (bool)$add), $return);
     }
 
     /**
@@ -447,9 +447,9 @@ class CLIm
      * @param int|string $color
      * @return $this
      */
-    public function color($color)
+    public function color($color, $return = false)
     {
-        return $this->esc($this->colors->format($color));
+        return $this->esc($this->colors->format($color), $return);
     }
 
     /**
@@ -457,18 +457,18 @@ class CLIm
      * @param int|string $color
      * @return $this
      */
-    public function bgColor($color)
+    public function bgColor($color, $return = false)
     {
-        return $this->esc($this->colors->format($color, true));
+        return $this->esc($this->colors->format($color, true), $return);
     }
 
     /**
      * Reset text color and style
      * @return $this
      */
-    public function reset()
+    public function reset($return = false)
     {
-        return $this->esc('0m');
+        return $this->esc('0m', $return);
     }
 
     /**
