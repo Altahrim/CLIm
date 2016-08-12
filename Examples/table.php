@@ -33,4 +33,14 @@ $data = [
 $t = new Table();
 $t->addData($data);
 $t->draw();
+
+$t = new Table();
+$t->addData([
+    ["If\nyou want\nto use\nit", 'with', "multiple\nline"],
+    ['in', 'multiple', 'rows'],
+    ['new lines', 'are', "also\ndetected"],
+    ['', 'and', ['arrays', 'arrays', 'arrays']]
+]);
+$t->draw();
+
 $out->lf();
