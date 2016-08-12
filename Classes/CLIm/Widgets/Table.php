@@ -33,6 +33,13 @@ class Table extends Widget
     private $columns;
 
     /**
+     * Rows
+     *
+     * @var array
+     */
+    private $rows;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -56,18 +63,19 @@ class Table extends Widget
             foreach ($row as $colId => $str) {
                 $this->makeColumn($colId);
                 $col = &$this->columns[$colId];
-                if (is_array($str)) {
-                    // TODO find a better way to handle arrays
-                    $str = array_map(function ($e) {
-                        return @implode(',', $e);
-                    }, $str);
-                    $str = implode("\n", $str);
+                $strList = is_array($str) ? $str : explode("\n", $str);
+                if (count($strList) > 1) {
+                    $this->makeRow($rowId);
+                    $this->rows[$rowId]['minHeight'] = max(
+                        $this->rows[$rowId]['minHeight'],
+                        count($strList)
+                    );
                 }
-                $len = Str::len($str, true);
+                $len = max(array_map(function ($str) { return Str::len($str, true); }, $strList));
                 $col['minWidth'] = max($col['minWidth'], $len);
                 $this->data[$rowId][$colId] = [
                     'len' => $len,
-                    'str' => $str
+                    'str' => $strList
                 ];
             }
             unset($col);
@@ -86,6 +94,15 @@ class Table extends Widget
         }
     }
 
+    private function makeRow($rowId)
+    {
+        if (!isset($this->rows[$rowId])) {
+            $this->rows[$rowId] = [
+                'minHeight' => 1
+            ];
+        }
+    }
+
     public function draw($flags = self::DISP_FRAME | self::DISP_COLS | self::DISP_ROWS)
     {
         $this->out->reset();
@@ -94,7 +111,7 @@ class Table extends Widget
         $showRows = $flags & self::DISP_ROWS;
         $firstRow = true;
         $nbCols = count($this->columns);
-        foreach ($this->data as $row) {
+        foreach ($this->data as $rowId => $row) {
             // Display vertical lines
             if ($showFrame && $firstRow || $showRows && !$firstRow) {
                 if ($firstRow) {
@@ -132,49 +149,53 @@ class Table extends Widget
             }
 
             // Display data
-            $firstCol = true;
-            $colId = 0;
-            foreach ($this->columns as $colName => $col) {
-                $lastCol = ++$colId === $nbCols;
-                $margin = str_repeat(' ', $this->innerMargin);
-                if ($firstCol && $showFrame) {
-                    echo '┃', $margin;
-                } elseif (!$firstCol && $showCols) {
-                    echo '│', $margin;
-                }
-                $data = isset($row[$colName]) ? $row[$colName] : false;
-
-                if ($data) {
-                    $padLen = $col['minWidth'] - $data['len'];
-                    if ($padLen) {
-                        if ($col['align'] === self::ALIGN_CENTER) {
-                            $padLen /= 2;
-                            echo str_repeat(' ', ceil($padLen));
-                        } elseif ($col['align'] === self::ALIGN_RIGHT) {
-                            echo str_repeat(' ', $padLen);
-                        }
+            $minHeight = isset($this->rows[$rowId]) ? $this->rows[$rowId]['minHeight'] : 1;
+            for ($i = 1; $i <= $minHeight; ++$i) {
+                $firstCol = true;
+                $colId = 0;
+                foreach ($this->columns as $colName => $col) {
+                    $lastCol = ++$colId === $nbCols;
+                    $margin = str_repeat(' ', $this->innerMargin);
+                    if ($firstCol && $showFrame) {
+                        echo '┃', $margin;
+                    } elseif (!$firstCol && $showCols) {
+                        echo '│', $margin;
                     }
-                    echo $data['str'];
-                    if ($padLen) {
-                        if ($col['align'] === self::ALIGN_CENTER) {
-                            echo str_repeat(' ', floor($padLen));
-                        } elseif ($col['align'] === self::ALIGN_LEFT) {
-                            echo str_repeat(' ', $padLen);
-                        }
-                    }
-                } else {
-                    echo str_repeat(' ', $col['minWidth']);
-                }
 
-                if ($showFrame || !$lastCol) {
-                    echo $margin;
+                    $data = isset($row[$colName]) ? $row[$colName] : false;
+                    $str = $data && isset($data['str'][$i-1]) ? $data['str'][$i-1] : '';
+                    if (!empty($str)) {
+                        $padLen = $col['minWidth'] - Str::len($str, true);
+                        if ($padLen) {
+                            if ($col['align'] === self::ALIGN_CENTER) {
+                                $padLen /= 2;
+                                echo str_repeat(' ', ceil($padLen));
+                            } elseif ($col['align'] === self::ALIGN_RIGHT) {
+                                echo str_repeat(' ', $padLen);
+                            }
+                        }
+                        echo $str;
+                        if ($padLen) {
+                            if ($col['align'] === self::ALIGN_CENTER) {
+                                echo str_repeat(' ', floor($padLen));
+                            } elseif ($col['align'] === self::ALIGN_LEFT) {
+                                echo str_repeat(' ', $padLen);
+                            }
+                        }
+                    } else {
+                        echo str_repeat(' ', $col['minWidth']);
+                    }
+
+                    if ($showFrame || !$lastCol) {
+                        echo $margin;
+                    }
+                    $firstCol = $firstRow = false;
                 }
-                $firstCol = $firstRow = false;
+                if ($showFrame) {
+                    echo '┃';
+                }
+                echo "\n";
             }
-            if ($showFrame) {
-                echo '┃';
-            }
-            echo "\n";
         }
 
         // Display frame bottom
