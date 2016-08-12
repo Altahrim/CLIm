@@ -33,7 +33,9 @@ $data = [
 $t = new Table();
 $t->addData($data);
 $t->draw();
+$out->lf();
 
+$out->writeLn('Multilines and array display:');
 $t = new Table();
 $t->addData([
     ["If\nyou want\nto use\nit", 'with', "multiple\nline"],
