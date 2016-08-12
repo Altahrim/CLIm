@@ -149,10 +149,10 @@ class Table extends Widget
             }
 
             // Display data
-            $firstCol = true;
-            $colId = 0;
             $minHeight = isset($this->rows[$rowId]) ? $this->rows[$rowId]['minHeight'] : 1;
             for ($i = 1; $i <= $minHeight; ++$i) {
+                $firstCol = true;
+                $colId = 0;
                 foreach ($this->columns as $colName => $col) {
                     $lastCol = ++$colId === $nbCols;
                     $margin = str_repeat(' ', $this->innerMargin);
