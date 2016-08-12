@@ -434,41 +434,45 @@ class CLIm
      * Add or remove some rendering flag
      * @param int $flags
      * @param bool $add
+     * @param bool $return
      * @return $this
      * @see \CLIm\Helpers\Style
      */
-    public function style($flags, $add = true)
+    public function style($flags, $add = true, $return = false)
     {
-        return $this->esc($this->style->format($flags, (bool)$add));
+        return $this->esc($this->style->format($flags, (bool)$add), $return);
     }
 
     /**
      * Set text color
      * @param int|string $color
+     * @param bool $return
      * @return $this
      */
-    public function color($color)
+    public function color($color, $return = false)
     {
-        return $this->esc($this->colors->format($color));
+        return $this->esc($this->colors->format($color), $return);
     }
 
     /**
      * Set background color
      * @param int|string $color
+     * @param bool $return
      * @return $this
      */
-    public function bgColor($color)
+    public function bgColor($color, $return = false)
     {
-        return $this->esc($this->colors->format($color, true));
+        return $this->esc($this->colors->format($color, true), $return);
     }
 
     /**
      * Reset text color and style
+     * @param bool $return
      * @return $this
      */
-    public function reset()
+    public function reset($return = false)
     {
-        return $this->esc('0m');
+        return $this->esc('0m', $return);
     }
 
     /**
