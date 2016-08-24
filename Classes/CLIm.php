@@ -96,6 +96,9 @@ class CLIm
     {
         $this->colors = new Colors();
         $this->style = new Style();
+
+        // FIXME Detect redirection and add support for it
+        // $isRedirected = posix_isatty(STDOUT);
     }
 
     /**
@@ -479,7 +482,7 @@ class CLIm
      * Print an ANSI sequence
      * @param string $code
      * @param bool $return
-     * @return $this
+     * @return $this|string
      */
     public function esc($code, $return = false)
     {
@@ -587,7 +590,8 @@ class CLIm
 
     /**
      * Dump one or more variables
-     * Note : reset style and color
+     * Note: reset style and color
+     * @param mixed $vars
      */
     public function dump(... $vars)
     {
@@ -628,7 +632,7 @@ class CLIm
      * @param $text
      * @param array ...$args
      * @return $this
-     * @todo Handle window with
+     * @todo Handle window with small width
      */
     public function title($text, ...$args)
     {

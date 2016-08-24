@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
-use \CLIm\Helpers\Prompt;
+use CLIm\Helpers\Answers;
+use CLIm\Widgets\Question;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPARATOR . 'autoload.php';
 
@@ -15,27 +16,40 @@ array_shift($argv);
 foreach ($argv as $k => $arg) {
     $answers['question_' . ($k + 1)] = $arg;
 }
-Prompt::loadAnswsers($answers);
-
+Answers::loadAnswsers($answers);
 
 $out->writeLn('Protip: in quiet mode, already answered questions are not displayed');
 $out->setScriptVerbosity(\CLIm::VERB_QUIET);
-$choices = ['yes' => 'Yes', 'No'];
-$res = Prompt::select('Do you have a favorite color ?', $choices, 'question_1');
+$choices = ['Yes', 'No'];
+
+$res = (new Question\Select())
+    ->setText('Do you have a favorite color ?')
+    ->setId('question_1')
+    ->addChoice(... $choices)
+    ->getAnswer();
 $out->line();
 
 $out->setScriptVerbosity(\CLIm::VERB_NORMAL);
-if ('yes' === $res[0]) {
-    Prompt::ask('So, what\'s your favorite color ?', 'question_2');
+if ('Yes' === $res) {
+    (new Question())
+        ->setText('So, what\'s your favorite color ?')
+        ->setId('question_2')
+        ->getAnswer();
     $out->line();
 }
 
 $out->writeLn('Protip: in debug mode, you can see question IDs');
 $out->setScriptVerbosity(\CLIm::VERB_DEBUG);
-Prompt::ask('What\'s your credit card number?', 'question_3');
+(new Question())
+    ->setText('What\'s your credit card number?')
+    ->setId('question_3')
+    ->getAnswer();
 $out->line();
 
 
 $out->setScriptVerbosity(\CLIm::VERB_NORMAL);
-$res = Prompt::hidden('And what is its cryptogram ?', true, 'question_4');
-
+(new Question\Hidden())
+    ->setText('And what is its cryptogram ?')
+    ->setId('question_4')
+    ->getAnswer();
+$out->writeLn("That's all");
