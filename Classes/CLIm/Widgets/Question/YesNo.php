@@ -6,13 +6,7 @@ class YesNo extends Character
     const ALLOWED_YES = 'yYoO';
     const ALLOWED_NO = 'nN';
 
-    private $validChars = self::ALLOWED_NO . self::ALLOWED_YES;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->setDefault('y');
-    }
+    protected $validChars = self::ALLOWED_NO . self::ALLOWED_YES;
 
     /**
      * Cast a string to boolean
@@ -21,6 +15,6 @@ class YesNo extends Character
      */
     protected function prepareAnswer($char)
     {
-        return false !== strpos($char, self::ALLOWED_YES, true);
+        return false !== strpos(self::ALLOWED_YES, $char);
     }
 }

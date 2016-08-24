@@ -6,7 +6,7 @@ use CLIm\Widgets\Question;
 class Character extends Question
 {
     protected $readFunc = 'readChar';
-    private $validChars;
+    protected $validChars;
 
     /**
      * Set a list of allowed characters
