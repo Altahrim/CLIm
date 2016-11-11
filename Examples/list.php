@@ -1,10 +1,10 @@
 #!/usr/bin/php
 <?php
-use \CLIm\Widgets\ItemList;
+use \Clim\Widget\ItemList;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
-$out = CLIm::getInstance();
+$out = Clim::getInstance();
 $out->clear();
 
 $data = [

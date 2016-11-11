@@ -1,17 +1,20 @@
 {
-    "name": "Altahrim/CLIm",
-    "description": "PHP CLI Improved. Toolkit aiming to provide a beautiful CLI output",
+    "name": "Altahrim/Clim",
+    "description": "CLI Improved for PHP. Toolkit aiming to provide a beautiful CLI output",
     "version": "0.1.0",
     "require": {
         "php": ">=5.6.0",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "atoum/atoum": "2.*"
     },
     "autoload": {
         "psr-4": {
-            "": "Classes"
+            "": "Classes",
+            "Tests\\": "Tests"
         }
     },
     "config" : {
+        "bin-dir": "Bin",
         "vendor-dir": "Vendor"
     }
 }

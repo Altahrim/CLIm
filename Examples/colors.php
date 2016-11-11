@@ -1,10 +1,10 @@
 #!/usr/bin/env php
 <?php
-use \CLIm\Helpers\Style;
+use \Clim\Helper\Style;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPARATOR . 'autoload.php';
 
-$out = CLIm::getInstance();
+$out = Clim::getInstance();
 
 // Display all 256 colors
 // Foreground first

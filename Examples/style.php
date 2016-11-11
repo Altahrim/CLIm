@@ -1,11 +1,11 @@
 #!/usr/bin/php
 <?php
-use \CLIm\Helpers\Colors;
-use \CLIm\Helpers\Style;
+use \Clim\Helper\Color;
+use \Clim\Helper\Style;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPARATOR . 'autoload.php';
 
-$out = CLIm::getInstance();
+$out = Clim::getInstance();
 $out->clear();
 
 $out
@@ -36,9 +36,9 @@ $out
 // - an hexadecimal RGB
 
 $out
-    ->color(Colors::BLUE)
+    ->color(Color::BLUE)
     ->write('Colors ')
-    ->color(Colors::MAGENTA)
+    ->color(Color::MAGENTA)
     ->write('can ')
     ->style(Style::BOLD)
     ->write('also ')

@@ -1,10 +1,10 @@
 #!/usr/bin/php
 <?php
-use CLIm\Widgets\Usage;
+use Clim\Widget\Usage;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPARATOR . 'autoload.php';
 
-$out = CLIm::getInstance();
+$out = Clim::getInstance();
 
 $u = new Usage();
 $u->setName(basename(__FILE__, '.php'));

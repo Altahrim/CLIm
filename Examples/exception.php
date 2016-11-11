@@ -1,17 +1,18 @@
 #!/usr/bin/php
 <?php
-use \CLIm\Helpers\Colors;
-use \CLIm\Helpers\Style;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPARATOR . 'autoload.php';
 
-$out = CLIm::getInstance();
+$out = Clim::getInstance();
 $out->clear();
 
 // You have to register handlers
 $out->registerErrorHandlers();
 
 // Then, build a nice application...
+/**
+ * Class Test
+ */
 class Test
 {
     public function doSomething()
@@ -19,6 +20,12 @@ class Test
         self::doSomethingNasty(':)', ['This', 'is', 'the', 'end'], 13.37);
     }
 
+    /**
+     * @param $a
+     * @param array $b
+     * @param $c
+     * @throws Exception
+     */
     protected static function doSomethingNasty($a, array $b, $c)
     {
         throw new \Exception('Wow, that escalated quickly!', 42, new Exception('Another one'));

@@ -1,14 +1,14 @@
 #!/usr/bin/php
 <?php
-use \CLIm\Widgets\ProgressBar;
+use \Clim\Widget\ProgressBar;
 
 require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Vendor' .  DIRECTORY_SEPARATOR . 'autoload.php';
 
-$out = CLIm::getInstance();
+$out = Clim::getInstance();
 $p   = new ProgressBar();
 
 // Gives best results
-\CLIm\Helpers\Cursor::hide();
+\Clim\Helper\Cursor::hide();
 
 $out->writeLn('Progressbar:');
 
