@@ -19,7 +19,7 @@ class Cursor
     /**
      * Return cursor position
      * Format: [0 => row, 1 => column]
-     * @return int[]
+     * @return int[]|false
      */
     public static function getPos()
     {
@@ -29,7 +29,8 @@ class Cursor
         $row = $col = '';
         $ptr = &$row;
         readline_callback_handler_install('', function () {});
-        while (true) {
+        $timeout = microtime(true) + 1;
+        while (microtime(true) <= $timeout) {
             $r = [STDIN];
             $w = null;
             $e = null;
@@ -50,6 +51,8 @@ class Cursor
                 }
             }
         }
+
+        return false;
     }
 
     /**
