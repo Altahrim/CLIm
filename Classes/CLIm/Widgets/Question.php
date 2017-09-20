@@ -31,13 +31,6 @@ class Question extends Widget
      */
     protected $default = '';
 
-    /**
-     * Previously saved answer
-     * If a question is asked twice, user is only prompted once
-     * @var string
-     */
-    private $answer = null;
-
     protected $readFunc = 'readStr';
 
     /**
@@ -47,10 +40,6 @@ class Question extends Widget
      */
     public function getAnswer()
     {
-        if (null !== $this->answer) {
-            return $this->answer;
-        }
-
         // Handle automatic
         $answer = $this->getAutoAnswer();
         $hasAnswser = null !== $answer;
@@ -88,7 +77,7 @@ class Question extends Widget
             $this->out->setScriptVerbosity($oldVerb);
         }
 
-        return $this->answer = $answer;
+        return $answer;
     }
 
     /**
