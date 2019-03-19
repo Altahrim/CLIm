@@ -669,16 +669,20 @@ class CLIm
     }
 
     /**
-     * Shortcut to display an alert message
+     * Shortcut to display an alert message (as a verbose message)
      * @param $text
      * @param array ...$args
      * @return $this
      */
     public function alert($text, ...$args)
     {
-        $this->color(214);
+        $this
+            ->verbosity(self::VERB_QUIET, $old)
+            ->color(214);
         $this->writeLn($text, ...$args);
-        $this->reset();
+        $this
+            ->verbosity($old)
+            ->reset();
         return $this;
     }
 
@@ -697,16 +701,20 @@ class CLIm
     }
 
     /**
-     * Shortcut to display an error message
+     * Shortcut to display an error message (as a verbose message)
      * @param $text
      * @param array ...$args
      * @return $this
      */
     public function error($text, ...$args)
     {
-        $this->color(160);
+        $this
+            ->verbosity(self::VERB_QUIET, $old)
+            ->color(160);
         $this->writeLn($text, ...$args);
-        $this->reset();
+        $this
+            ->verbosity($old)
+            ->reset();
         return $this;
     }
 }
